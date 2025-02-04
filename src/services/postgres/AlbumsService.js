@@ -39,7 +39,7 @@ class AlbumService {
   //Get One
   async getAlbumById(id) {
     const query = {
-      text: 'SELECT * FROM songs WHERE id = $1',
+      text: 'SELECT * FROM albums WHERE id = $1',
       values: [id],
     };
 
@@ -49,7 +49,7 @@ class AlbumService {
       throw new NotFoundError('Data album tidak ditemukan');
     }
 
-    return result.rows.map(resGetAlbumsDTO);
+    return result.rows.map(resGetAlbumsDTO)[0];
   }
 
   //Put
@@ -57,8 +57,8 @@ class AlbumService {
     const updatedAt = new Date().toISOString();
     const query = {
       text: `UPDATE albums
-             SET name = COALESCE($1, name)
-                 year = COALESCE($2, year)
+             SET name = COALESCE($1, name),
+                 year = COALESCE($2, year),
                  updated_at = $3
              WHERE id = $4 RETURNING id`,
       values: [name, year, updatedAt, id],
@@ -74,7 +74,7 @@ class AlbumService {
   //Delete
   async deleteAlbumById(id) {
     const query = {
-      text: 'DELETE FROM albums WHERE id = $1',
+      text: 'DELETE FROM albums WHERE id = $1 RETURNING id',
       values: [id],
     };
 
