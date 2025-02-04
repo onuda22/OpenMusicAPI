@@ -2,10 +2,13 @@ require('dotenv').config();
 
 const Hapi = require('@hapi/hapi');
 const song = require('./api/song');
-const album = require('./api/album');
+const album = require('./api/albums');
 
-const SongService = null;
-const AlbumService = null;
+const SongService = require('./services/postgres/SongService');
+const AlbumService = require('./services/postgres/AlbumsService');
+
+const SongValidator = require('./validator/songs');
+const AlbumValidator = require('./validator/albums');
 
 const ClientError = require('./exceptions/ClientError');
 
@@ -30,12 +33,25 @@ const init = async () => {
   server.ext('onPreResponse', (req, h) => {
     const { response } = req;
 
-    if (response instanceof ClientError) {
+    if (response instanceof Error) {
+      if (response instanceof ClientError) {
+        const newResponse = h.response({
+          status: 'fail',
+          message: response.message,
+        });
+        newResponse.code(response.statusCode);
+        return newResponse;
+      }
+
+      if (!response.isServer) {
+        return h.continue;
+      }
+
       const newResponse = h.response({
-        status: 'fail',
-        message: response.message,
+        status: 'error',
+        message: 'Server Error',
       });
-      newResponse.code(response.statusCode);
+      newResponse.code(500);
       return newResponse;
     }
 
@@ -45,19 +61,22 @@ const init = async () => {
   /**
    * Register plugin/service
    */
+  const songsService = new SongService();
+  const albumsService = new AlbumService();
+
   await server.register([
     {
       plugin: song,
       options: {
-        service: SongService,
-        validator: null,
+        service: songsService,
+        validator: SongValidator,
       },
     },
     {
       plugin: album,
       options: {
-        service: AlbumService,
-        validator: null,
+        service: albumsService,
+        validator: AlbumValidator,
       },
     },
   ]);
