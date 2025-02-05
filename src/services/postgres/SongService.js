@@ -109,6 +109,20 @@ class SongService {
       throw new NotFoundError('Song Not Found');
     }
   }
+
+  /**
+   * Get Data by Query Parameters
+   */
+  async getSongByQueryParams(title, performer) {
+    const query = {
+      text: 'SELECT * FROM songs WHERE title ILIKE $1 AND performer ILIKE $2',
+      values: [`%${title.toLowerCase()}%`, `%${performer.toLowerCase()}%`],
+    };
+
+    const result = await this._pool.query(query);
+
+    return result.rows.map(resGetAllSongsDTO);
+  }
 }
 
 module.exports = SongService;
