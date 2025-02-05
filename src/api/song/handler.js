@@ -32,8 +32,18 @@ class SongsHandler {
     return response;
   }
 
-  async getSongsHandler() {
-    const songs = await this._service.getSongs();
+  async getSongsHandler(request) {
+    if (!request.query || Object.keys(request.query).length === 0) {
+      const songs = await this._service.getSongs();
+      return {
+        status: 'success',
+        data: {
+          songs,
+        },
+      };
+    }
+    const { title = '', performer = '' } = request.query;
+    const songs = await this._service.getSongByQueryParams(title, performer);
     return {
       status: 'success',
       data: {
