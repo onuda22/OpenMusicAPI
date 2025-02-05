@@ -4,11 +4,4 @@ const resGetAlbumsDTO = ({ id, name, year }) => ({
   year,
 });
 
-const resGetOneAlbumsDTO = ({ id, name, year, songs }) => ({
-  id,
-  name,
-  year,
-  songs,
-});
-
-module.exports = { resGetAlbumsDTO, resGetOneAlbumsDTO };
+module.exports = { resGetAlbumsDTO };

@@ -30,12 +30,7 @@ class AlbumService {
     return result.rows[0].id;
   }
 
-  //Get All
-  async getAlbums() {
-    return (await this._pool.query('SELECT * FROM albums')).rows.map(
-      resGetAlbumsDTO
-    );
-  }
+  //Get All - Not Implemented
 
   //Get One
   async getAlbumById(id) {
