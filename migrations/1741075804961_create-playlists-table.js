@@ -1,0 +1,47 @@
+/* eslint-disable camelcase */
+/**
+ * @type {import('node-pg-migrate').ColumnDefinitions | undefined}
+ */
+exports.shorthands = {
+  id: { type: 'VARCHAR(50)', primaryKey: true },
+  created_at: { type: 'TEXT', notNull: true },
+  updated_at: { type: 'TEXT', notNull: true },
+};
+
+/**
+ * @param pgm {import('node-pg-migrate').MigrationBuilder}
+ * @param run {() => void | undefined}
+ * @returns {Promise<void> | void}
+ */
+exports.up = (pgm) => {
+  pgm.createTable('playlists', {
+    id: 'id',
+    name: {
+      type: 'VARCHAR(50)',
+      notNull: true,
+    },
+    owner: {
+      type: 'VARCHAR(50)',
+      notNull: true,
+    },
+    created_at: 'created_at',
+    updated_at: 'updated_at',
+  });
+
+  pgm.addConstraint('playlists', 'playlists_owner_fkey', {
+    foreignKeys: {
+      columns: 'owner',
+      references: 'users(id)',
+      onDelete: 'CASCADE',
+    },
+  });
+};
+
+/**
+ * @param pgm {import('node-pg-migrate').MigrationBuilder}
+ * @param run {() => void | undefined}
+ * @returns {Promise<void> | void}
+ */
+exports.down = (pgm) => {
+  pgm.dropTable('playlists');
+};
