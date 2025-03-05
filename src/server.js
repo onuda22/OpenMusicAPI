@@ -5,15 +5,20 @@ const ClientError = require('./exceptions/ClientError');
 const Hapi = require('@hapi/hapi');
 const song = require('./api/song');
 const album = require('./api/albums');
+const users = require('./api/users');
+const authentications = require('./api/authentications');
 
 const SongService = require('./services/postgres/SongService');
 const AlbumService = require('./services/postgres/AlbumsService');
 const UsersService = require('./services/postgres/UsersService');
+const AuthService = require('./services/postgres/AuthService');
 
 const SongValidator = require('./validator/songs');
 const AlbumValidator = require('./validator/albums');
 const UsersValidator = require('./validator/users');
-const users = require('./api/users');
+const AuthenticationsValidator = require('./validator/authentications');
+
+const TokenManager = require('./tokenize/TokenManager');
 
 const init = async () => {
   /**
@@ -67,6 +72,7 @@ const init = async () => {
   const songsService = new SongService();
   const albumsService = new AlbumService();
   const usersService = new UsersService();
+  const authService = new AuthService();
 
   await server.register([
     {
@@ -88,6 +94,15 @@ const init = async () => {
       options: {
         service: usersService,
         validator: UsersValidator,
+      },
+    },
+    {
+      plugin: authentications,
+      options: {
+        authService,
+        usersService,
+        tokenManager: TokenManager,
+        validator: AuthenticationsValidator,
       },
     },
   ]);
