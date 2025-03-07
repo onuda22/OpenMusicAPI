@@ -7,6 +7,7 @@ const song = require('./api/song');
 const album = require('./api/albums');
 const users = require('./api/users');
 const authentications = require('./api/authentications');
+const Jwt = require('@hapi/jwt');
 
 const SongService = require('./services/postgres/SongService');
 const AlbumService = require('./services/postgres/AlbumsService');
@@ -19,6 +20,9 @@ const UsersValidator = require('./validator/users');
 const AuthenticationsValidator = require('./validator/authentications');
 
 const TokenManager = require('./tokenize/TokenManager');
+const PlaylistService = require('./services/postgres/PlaylistService');
+const playlists = require('./api/playlists');
+const PlaylistValidator = require('./validator/playlists');
 
 const init = async () => {
   /**
@@ -32,6 +36,28 @@ const init = async () => {
         origin: ['*'],
       },
     },
+  });
+
+  server.register([
+    {
+      plugin: Jwt,
+    },
+  ]);
+
+  server.auth.strategy('musicapp_jwt', 'jwt', {
+    keys: process.env.ACCESS_TOKEN_KEY,
+    verify: {
+      aud: false,
+      iss: false,
+      sub: false,
+      maxAgeSec: process.env.ACCESS_TOKEN_AGE,
+    },
+    validate: (artifacts) => ({
+      isValid: true,
+      credentials: {
+        id: artifacts.decoded.payload.id,
+      },
+    }),
   });
 
   /**
@@ -73,6 +99,7 @@ const init = async () => {
   const albumsService = new AlbumService();
   const usersService = new UsersService();
   const authService = new AuthService();
+  const playlistService = new PlaylistService();
 
   await server.register([
     {
@@ -103,6 +130,13 @@ const init = async () => {
         usersService,
         tokenManager: TokenManager,
         validator: AuthenticationsValidator,
+      },
+    },
+    {
+      plugin: playlists,
+      options: {
+        playlistService,
+        validator: PlaylistValidator,
       },
     },
   ]);
