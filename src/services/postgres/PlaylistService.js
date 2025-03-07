@@ -180,12 +180,11 @@ class PlaylistService {
              LEFT JOIN users ON users.id = psa.user_id
              LEFT JOIN songs ON songs.id = psa.song_id
              WHERE psa.playlist_id = $1
-             ORDER BY time;`,
+             ORDER BY time`,
       values: [playlistId],
     };
 
     const result = await this._pool.query(query);
-    console.log(result.rows);
 
     return result.rows;
   }
