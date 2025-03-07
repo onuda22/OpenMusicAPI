@@ -95,7 +95,7 @@ const init = async () => {
   /**
    * Register plugin/service
    */
-  const songsService = new SongService();
+  const songService = new SongService();
   const albumsService = new AlbumService();
   const usersService = new UsersService();
   const authService = new AuthService();
@@ -105,7 +105,7 @@ const init = async () => {
     {
       plugin: song,
       options: {
-        service: songsService,
+        service: songService,
         validator: SongValidator,
       },
     },
@@ -136,6 +136,7 @@ const init = async () => {
       plugin: playlists,
       options: {
         playlistService,
+        songService,
         validator: PlaylistValidator,
       },
     },
