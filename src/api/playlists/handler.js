@@ -66,7 +66,11 @@ class PlaylistsHandler {
 
     const { songId } = req.payload;
     await this._songService.getSongById(songId);
-    await this._playlistService.addPlaylistSong(playlistId, songId);
+    await this._playlistService.addPlaylistSong(
+      playlistId,
+      songId,
+      credentialId
+    );
 
     const result = h.response({
       status: 'success',
@@ -99,7 +103,11 @@ class PlaylistsHandler {
     await this._playlistService.verifyPlaylistOwner(playlistId, credentialId);
 
     const { songId } = req.payload;
-    await this._playlistService.deleteSongFromPlaylistById(playlistId, songId);
+    await this._playlistService.deleteSongFromPlaylistById(
+      playlistId,
+      songId,
+      credentialId
+    );
 
     return {
       status: 'success',
