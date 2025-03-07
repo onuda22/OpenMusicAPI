@@ -106,6 +106,23 @@ class PlaylistsHandler {
       message: 'Song deleted successfully from your playlist',
     };
   }
+
+  async getPlaylistActivityHandler(req) {
+    const { id: credentialId } = req.auth.credentials;
+    const { id: playlistId } = req.params;
+
+    await this._playlistService.verifyPlaylistOwner(playlistId, credentialId);
+    const activities =
+      await this._playlistService.getPlaylistActivityByPlaylistId(playlistId);
+
+    return {
+      status: 'success',
+      data: {
+        playlistId,
+        activities,
+      },
+    };
+  }
 }
 
 module.exports = PlaylistsHandler;

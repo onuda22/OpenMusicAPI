@@ -104,7 +104,7 @@ class PlaylistService {
    */
 
   //POST
-  async addPlaylistSong(playlistId, songId) {
+  async addPlaylistSong(playlistId, songId, userId) {
     const id = `ps-${nanoid(16)}`;
     const createdAt = new Date().toISOString();
     const query = {
@@ -117,6 +117,9 @@ class PlaylistService {
     if (!result.rows[0].id) {
       throw new InvariantError('Song failed to be added to playlists');
     }
+
+    const action = 'add';
+    await this.addPlaylistActivity(playlistId, songId, userId, action);
   }
 
   //GET ALL
@@ -138,7 +141,7 @@ class PlaylistService {
   }
 
   //DELETE
-  async deleteSongFromPlaylistById(playlistId, songId) {
+  async deleteSongFromPlaylistById(playlistId, songId, userId) {
     const query = {
       text: 'DELETE FROM playlist_songs WHERE playlist_id = $1 AND song_id = $2',
       values: [playlistId, songId],
@@ -149,6 +152,42 @@ class PlaylistService {
     if (!result.rowCount) {
       throw new NotFoundError('Song Not Found');
     }
+
+    const action = 'delete';
+    await this.addPlaylistActivity(playlistId, songId, userId, action);
+  }
+
+  /**
+   * Playlist Song Activities
+   */
+  async addPlaylistActivity(playlistId, songId, userId, action) {
+    const id = `playActivity-${nanoid(16)}`;
+    const time = new Date().toISOString();
+
+    const query = {
+      text: 'INSERT INTO playlist_song_activities VALUES($1, $2, $3, $4, $5, $6)',
+      values: [id, playlistId, songId, userId, action, time],
+    };
+
+    await this._pool.query(query);
+  }
+
+  async getPlaylistActivityByPlaylistId(playlistId) {
+    const query = {
+      text: `SELECT users.username, songs.title,
+                    psa.action, psa.time
+	           FROM playlist_song_activities psa
+             LEFT JOIN users ON users.id = psa.user_id
+             LEFT JOIN songs ON songs.id = psa.song_id
+             WHERE psa.playlist_id = $1
+             ORDER BY time;`,
+      values: [playlistId],
+    };
+
+    const result = await this._pool.query(query);
+    console.log(result.rows);
+
+    return result.rows;
   }
 }
 
