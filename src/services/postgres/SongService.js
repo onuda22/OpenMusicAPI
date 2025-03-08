@@ -24,7 +24,6 @@ class SongService {
   }) {
     const id = nanoid(16);
     const createdAt = new Date().toISOString();
-    const updatedAt = createdAt;
 
     const query = {
       text: 'INSERT INTO songs VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING Id',
@@ -37,7 +36,7 @@ class SongService {
         duration,
         albumId,
         createdAt,
-        updatedAt,
+        createdAt,
       ],
     };
 
@@ -66,7 +65,7 @@ class SongService {
 
     const result = await this._pool.query(query);
 
-    if (!result.rows.length) {
+    if (!result.rowCount) {
       throw new NotFoundError('Songs Not Found');
     }
 
@@ -91,7 +90,7 @@ class SongService {
 
     const result = await this._pool.query(query);
 
-    if (!result.rows.length) {
+    if (!result.rowCount) {
       throw new NotFoundError('Failed to edit song. Song not found');
     }
   }
@@ -105,7 +104,7 @@ class SongService {
 
     const result = await this._pool.query(query);
 
-    if (!result.rows.length) {
+    if (!result.rowCount) {
       throw new NotFoundError('Song Not Found');
     }
   }

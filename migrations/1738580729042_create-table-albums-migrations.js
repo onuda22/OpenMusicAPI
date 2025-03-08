@@ -2,7 +2,11 @@
 /**
  * @type {import('node-pg-migrate').ColumnDefinitions | undefined}
  */
-exports.shorthands = undefined;
+exports.shorthands = {
+  id: { type: 'VARCHAR(50)', primaryKey: true },
+  created_at: { type: 'TEXT', notNull: true },
+  updated_at: { type: 'TEXT', notNull: true },
+};
 
 /**
  * @param pgm {import('node-pg-migrate').MigrationBuilder}
@@ -11,10 +15,7 @@ exports.shorthands = undefined;
  */
 exports.up = (pgm) => {
   pgm.createTable('albums', {
-    id: {
-      type: 'VARCHAR(50)',
-      primaryKey: true,
-    },
+    id: 'id',
     name: {
       type: 'TEXT',
       notNull: true,
@@ -23,14 +24,8 @@ exports.up = (pgm) => {
       type: 'INTEGER',
       notNull: true,
     },
-    created_at: {
-      type: 'TEXT',
-      notNull: true,
-    },
-    updated_at: {
-      type: 'TEXT',
-      notNull: true,
-    },
+    created_at: 'created_at',
+    updated_at: 'updated_at',
   });
 };
 
