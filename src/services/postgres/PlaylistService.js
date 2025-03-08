@@ -11,8 +11,9 @@ class PlaylistService {
    * 2. Get
    * 3. Delete (id)
    */
-  constructor() {
+  constructor(collaborationService) {
     this._pool = new Pool();
+    this._collaborationService = collaborationService;
   }
 
   async addPlaylist(name, owner) {
@@ -37,8 +38,10 @@ class PlaylistService {
     const query = {
       text: `SELECT playlists.id, playlists.name, users.username
       FROM playlists
+      LEFT JOIN collaborations ON collaborations.playlist_id = playlists.id
       LEFT JOIN users ON users.id = playlists.owner
-      WHERE playlists.owner = $1`,
+      WHERE playlists.owner = $1 OR collaborations.user_id = $1
+      GROUP BY playlists.id, playlists.name, users.username`,
       values: [owner],
     };
 
@@ -187,6 +190,22 @@ class PlaylistService {
     const result = await this._pool.query(query);
 
     return result.rows;
+  }
+
+  //Collaborations feature service need
+  async verifyPlaylistAccess(playlistId, userId) {
+    try {
+      await this.verifyPlaylistOwner(playlistId, userId);
+    } catch (error) {
+      if (error instanceof NotFoundError) {
+        throw error;
+      }
+      try {
+        await this._collaborationService.verifyCollaborator(playlistId, userId);
+      } catch {
+        throw error;
+      }
+    }
   }
 }
 
