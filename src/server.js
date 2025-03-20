@@ -34,7 +34,7 @@ const CollaborationsValidator = require('./validator/collaborations');
 
 //Export
 const _exports = require('./api/exports');
-const ProducerService = require('./services/rabbitMQprocess.env.REFRESH_TOKEN_KEY/ProducerService');
+const ProducerService = require('./services/rabbitMQ/ProducerService');
 const ExportsValidator = require('./validator/exports');
 
 const init = async () => {
