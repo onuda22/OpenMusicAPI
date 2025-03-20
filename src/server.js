@@ -1,13 +1,14 @@
 require('dotenv').config();
 
 const ClientError = require('./exceptions/ClientError');
+const config = require('./utils/config');
 
 const Hapi = require('@hapi/hapi');
+const Jwt = require('@hapi/jwt');
 const song = require('./api/song');
 const album = require('./api/albums');
 const users = require('./api/users');
 const authentications = require('./api/authentications');
-const Jwt = require('@hapi/jwt');
 
 const SongService = require('./services/postgres/SongService');
 const AlbumService = require('./services/postgres/AlbumsService');
@@ -20,20 +21,29 @@ const UsersValidator = require('./validator/users');
 const AuthenticationsValidator = require('./validator/authentications');
 
 const TokenManager = require('./tokenize/TokenManager');
+
+//Playlist
 const PlaylistService = require('./services/postgres/PlaylistService');
 const playlists = require('./api/playlists');
 const PlaylistValidator = require('./validator/playlists');
+
+//Collaboration
 const CollaborationsService = require('./services/postgres/CollaborationsService');
 const collaborations = require('./api/collaborations');
 const CollaborationsValidator = require('./validator/collaborations');
+
+//Export
+const _exports = require('./api/exports');
+const ProducerService = require('./services/rabbitMQprocess.env.REFRESH_TOKEN_KEY/ProducerService');
+const ExportsValidator = require('./validator/exports');
 
 const init = async () => {
   /**
    * Initiate server
    */
   const server = Hapi.Server({
-    port: process.env.PORT,
-    host: process.env.HOST,
+    port: config.app.port,
+    host: config.app.host,
     routes: {
       cors: {
         origin: ['*'],
@@ -48,12 +58,12 @@ const init = async () => {
   ]);
 
   server.auth.strategy('musicapp_jwt', 'jwt', {
-    keys: process.env.ACCESS_TOKEN_KEY,
+    keys: config.jwt.tokenKey,
     verify: {
       aud: false,
       iss: false,
       sub: false,
-      maxAgeSec: process.env.ACCESS_TOKEN_AGE,
+      maxAgeSec: config.jwt.tokenAge,
     },
     validate: (artifacts) => ({
       isValid: true,
@@ -151,6 +161,14 @@ const init = async () => {
         playlistService,
         usersService,
         validator: CollaborationsValidator,
+      },
+    },
+    {
+      plugin: _exports,
+      options: {
+        service: ProducerService,
+        playlistService,
+        validator: ExportsValidator,
       },
     },
   ]);
