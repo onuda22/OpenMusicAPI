@@ -5,6 +5,11 @@ const config = {
   },
   s3: {
     bucketName: process.env.AWS_BUCKET_NAME,
+    region: process.env.AWS_REGION,
+    credentials: {
+      accessKey: process.env.AWS_ACCESS_KEY_ID,
+      secretKey: process.env.AWS_SECRET_ACCESS_KEY,
+    },
   },
   rabbitMq: {
     server: process.env.RABBITMQ_SERVER,

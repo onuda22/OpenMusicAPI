@@ -37,6 +37,11 @@ const _exports = require('./api/exports');
 const ProducerService = require('./services/rabbitMQ/ProducerService');
 const ExportsValidator = require('./validator/exports');
 
+//Uploads
+const uploads = require('./api/uploads');
+const StorageService = require('./services/s3/StorageService');
+const UploadsValidator = require('./validator/uploads');
+
 const init = async () => {
   /**
    * Initiate server
@@ -114,6 +119,7 @@ const init = async () => {
   const usersService = new UsersService();
   const authService = new AuthService();
   const playlistService = new PlaylistService(collaborationService);
+  const storageService = new StorageService();
 
   await server.register([
     {
@@ -169,6 +175,14 @@ const init = async () => {
         service: ProducerService,
         playlistService,
         validator: ExportsValidator,
+      },
+    },
+    {
+      plugin: uploads,
+      options: {
+        storageService,
+        albumsService,
+        validator: UploadsValidator,
       },
     },
   ]);
