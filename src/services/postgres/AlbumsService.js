@@ -110,6 +110,58 @@ class AlbumService {
       throw new NotFoundError('Gagal upload sampul, album tidak ditemukan');
     }
   }
+
+  /**
+   * Album Likes Feature
+   * Create, Delete, Get
+   */
+  async addAlbumLikes(albumId, userId) {
+    await this.getAlbumById(albumId);
+    const id = `likes-${nanoid(16)}`;
+    const query = {
+      text: `
+        INSERT INTO user_album_likes (id, album_id, user_id)
+        VALUES ($1, $2, $3)
+        ON CONFLICT (album_id, user_id) DO NOTHING
+        RETURNING id;
+      `,
+      values: [id, albumId, userId],
+    };
+
+    const result = await this._pool.query(query);
+
+    if (!result.rowCount) {
+      throw new InvariantError(
+        'Gagal menyukai album, Anda sudah menyukai album ini sebelumnya.'
+      );
+    }
+  }
+
+  async deleteAlbumLikes(albumId, userId) {
+    const query = {
+      text: 'DELETE FROM user_album_likes WHERE album_id = $1 AND user_id = $2 RETURNING id',
+      values: [albumId, userId],
+    };
+
+    const result = await this._pool.query(query);
+
+    if (!result.rowCount) {
+      throw new InvariantError(
+        'Gagal menghapus album like, data like pada album tidak ditemukan'
+      );
+    }
+  }
+
+  async getTotalAlbumLikes(albumId) {
+    const query = {
+      text: 'SELECT COUNT(*)::INTEGER AS album_likes FROM user_album_likes WHERE album_id = $1',
+      values: [albumId],
+    };
+
+    const result = await this._pool.query(query);
+
+    return result.rows[0].album_likes;
+  }
 }
 
 module.exports = AlbumService;
