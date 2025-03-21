@@ -4,6 +4,7 @@ const NotFoundError = require('../../exceptions/NotFoundError');
 const { nanoid } = require('nanoid');
 const { resGetAlbumsDTO } = require('../../utils/responseGetAlbumsDTO');
 const { resGetAllSongsDTO } = require('../../utils/responseGetSongsDTO');
+const cacheKeys = require('../../utils/cacheKeys');
 
 class AlbumService {
   constructor(cacheService) {
@@ -117,7 +118,16 @@ class AlbumService {
    * Create, Delete, Get
    */
   async addAlbumLikes(albumId, userId) {
-    await this.getAlbumById(albumId);
+    const albumQuery = {
+      text: 'SELECT * FROM albums WHERE id = $1',
+      values: [albumId],
+    };
+    const album = await this._pool.query(albumQuery);
+
+    if (!album.rowCount) {
+      throw new NotFoundError('Data album tidak ditemukan');
+    }
+
     const id = `likes-${nanoid(16)}`;
     const query = {
       text: `
@@ -137,7 +147,7 @@ class AlbumService {
       );
     }
 
-    await this._cacheService.delete(`likes:${albumId}`);
+    await this._cacheService.delete(cacheKeys.albumLikeById(albumId));
   }
 
   async deleteAlbumLikes(albumId, userId) {
@@ -154,12 +164,14 @@ class AlbumService {
       );
     }
 
-    await this._cacheService.delete(`likes:${albumId}`);
+    await this._cacheService.delete(cacheKeys.albumLikeById(albumId));
   }
 
   async getTotalAlbumLikes(albumId) {
     try {
-      const data = await this._cacheService.get(`likes:${albumId}`);
+      const data = await this._cacheService.get(
+        cacheKeys.albumLikeById(albumId)
+      );
       return data;
       // eslint-disable-next-line no-unused-vars
     } catch (error) {
@@ -171,7 +183,7 @@ class AlbumService {
       const result = await this._pool.query(query);
       const likes = result.rows[0].album_likes;
 
-      await this._cacheService.set(`likes:${albumId}`, likes);
+      await this._cacheService.set(cacheKeys.albumLikeById(albumId), likes);
 
       return likes;
     }

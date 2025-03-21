@@ -115,12 +115,15 @@ const init = async () => {
    * Register plugin/service
    */
   const cacheService = new CacheService();
-  const collaborationService = new CollaborationsService();
+  const collaborationService = new CollaborationsService(cacheService);
   const songService = new SongService();
   const albumsService = new AlbumService(cacheService);
   const usersService = new UsersService();
-  const authService = new AuthService();
-  const playlistService = new PlaylistService(collaborationService);
+  const authService = new AuthService(cacheService);
+  const playlistService = new PlaylistService(
+    collaborationService,
+    cacheService
+  );
   const storageService = new StorageService();
 
   await server.register([
