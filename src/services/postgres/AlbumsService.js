@@ -6,8 +6,9 @@ const { resGetAlbumsDTO } = require('../../utils/responseGetAlbumsDTO');
 const { resGetAllSongsDTO } = require('../../utils/responseGetSongsDTO');
 
 class AlbumService {
-  constructor() {
+  constructor(cacheService) {
     this._pool = new Pool();
+    this._cacheService = cacheService;
   }
 
   //Post
@@ -135,6 +136,8 @@ class AlbumService {
         'Gagal menyukai album, Anda sudah menyukai album ini sebelumnya.'
       );
     }
+
+    await this._cacheService.delete(`likes:${albumId}`);
   }
 
   async deleteAlbumLikes(albumId, userId) {
@@ -150,17 +153,28 @@ class AlbumService {
         'Gagal menghapus album like, data like pada album tidak ditemukan'
       );
     }
+
+    await this._cacheService.delete(`likes:${albumId}`);
   }
 
   async getTotalAlbumLikes(albumId) {
-    const query = {
-      text: 'SELECT COUNT(*)::INTEGER AS album_likes FROM user_album_likes WHERE album_id = $1',
-      values: [albumId],
-    };
+    try {
+      const data = await this._cacheService.get(`likes:${albumId}`);
+      return data;
+      // eslint-disable-next-line no-unused-vars
+    } catch (error) {
+      const query = {
+        text: 'SELECT COUNT(*)::INTEGER AS album_likes FROM user_album_likes WHERE album_id = $1',
+        values: [albumId],
+      };
 
-    const result = await this._pool.query(query);
+      const result = await this._pool.query(query);
+      const likes = result.rows[0].album_likes;
 
-    return result.rows[0].album_likes;
+      await this._cacheService.set(`likes:${albumId}`, likes);
+
+      return likes;
+    }
   }
 }
 

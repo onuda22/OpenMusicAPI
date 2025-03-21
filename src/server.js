@@ -41,6 +41,7 @@ const ExportsValidator = require('./validator/exports');
 const uploads = require('./api/uploads');
 const StorageService = require('./services/s3/StorageService');
 const UploadsValidator = require('./validator/uploads');
+const CacheService = require('./services/redis/CacheService');
 
 const init = async () => {
   /**
@@ -113,9 +114,10 @@ const init = async () => {
   /**
    * Register plugin/service
    */
+  const cacheService = new CacheService();
   const collaborationService = new CollaborationsService();
   const songService = new SongService();
-  const albumsService = new AlbumService();
+  const albumsService = new AlbumService(cacheService);
   const usersService = new UsersService();
   const authService = new AuthService();
   const playlistService = new PlaylistService(collaborationService);
